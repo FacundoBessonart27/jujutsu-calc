@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Jujutsu Calc — Cursed Arithmetic</title>
+  <meta name="description" content="Calculadora temática de Jujutsu Kaisen. Cada número es un hechicero distinto." />
+  <link rel="icon" href="data:," />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ambient cursed-energy background glow, purely decorative -->
+  <div class="void-bg" aria-hidden="true">
+    <span class="void-orb orb-1"></span>
+    <span class="void-orb orb-2"></span>
+    <span class="void-orb orb-3"></span>
+  </div>
+
+  <div class="app">
+
+    <header class="app-header">
+      <p class="eyebrow" lang="ja">呪術計算 — 領域展開</p>
+      <h1 class="title">JUJUTSU<span class="title-accent">CALC</span></h1>
+      <p class="subtitle">CURSED ARITHMETIC</p>
+    </header>
+
+    <main class="calculator" id="calculator">
+
+      <!-- screen: cursed-energy readout panel -->
+      <section class="screen" id="screen" aria-live="polite">
+        <div class="screen-top">
+          <span class="screen-tag" id="activeSorcerer">STANDBY</span>
+          <div class="screen-actions">
+            <button class="screen-action-btn" id="percent" type="button" aria-label="Porcentaje">%</button>
+            <button class="screen-action-btn" id="backspace" type="button" aria-label="Borrar último carácter">⌫</button>
+          </div>
+        </div>
+        <div class="screen-expression" id="expression">&nbsp;</div>
+        <div class="screen-result" id="result">0</div>
+      </section>
+
+      <!-- keypad: numbers double as sorcerer portraits -->
+      <section class="keypad" id="keypad" aria-label="Teclado de la calculadora"></section>
+
+    </main>
+
+    <footer class="app-footer">
+      <p>Toca un número para invocar a su hechicero.</p>
+    </footer>
+
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

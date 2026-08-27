@@ -1,0 +1,517 @@
+/* ==========================================================================
+   JUJUTSU CALC — design tokens
+   Palette: void background + ten "cursed technique" accent colors, one per
+   sorcerer, used as glow/border colors on their respective keypad tile.
+   Type: system stacks only (no external font requests — the app must run
+   fully offline once published), pushed toward a poster/technical feel
+   with weight, uppercase tracking and a monospace readout.
+   ========================================================================== */
+
+:root {
+  /* base surfaces */
+  --bg: #08070c;
+  --bg-alt: #0d0c14;
+  --surface: #131220;
+  --surface-raised: #1b1a2c;
+  --border: #2a2840;
+  --border-soft: #201f33;
+
+  /* text */
+  --text: #f1eef9;
+  --text-muted: #9490b3;
+  --text-faint: #5f5c7c;
+
+  /* signature void accent (default cursed-energy color) */
+  --void: #7b5cff;
+  --void-soft: rgba(123, 92, 255, 0.35);
+
+  /* per-sorcerer curse colors */
+  --c-geto: #9d4edd;
+  --c-gojo: #29c5ff;
+  --c-yuji: #ff6a3d;
+  --c-megumi: #4a5fd6;
+  --c-nobara: #ffb703;
+  --c-sukuna: #ff2d55;
+  --c-toji: #8a8a99;
+  --c-nanami: #2ec4b6;
+  --c-maki: #c9c9e0;
+  --c-yuta: #8752e8;
+
+  /* operators / functions */
+  --danger: #ff3b5c;
+  --equals-a: #7b5cff;
+  --equals-b: #29c5ff;
+
+  --radius-lg: 22px;
+  --radius-md: 16px;
+  --radius-sm: 10px;
+
+  --font-display: 'Arial Black', 'Helvetica Neue', Arial, sans-serif;
+  --font-ui: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'Courier New', ui-monospace, 'SFMono-Regular', Menlo, Consolas, monospace;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-ui);
+  -webkit-tap-highlight-color: transparent;
+  overflow-x: hidden;
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  padding: 28px 16px 40px;
+}
+
+button {
+  font-family: inherit;
+  color: inherit;
+  border: none;
+  background: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+img { display: block; max-width: 100%; }
+
+/* ==========================================================================
+   Ambient background — soft drifting cursed-energy orbs
+   ========================================================================== */
+
+.void-bg {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.void-orb {
+  position: absolute;
+  width: 46vmax;
+  height: 46vmax;
+  border-radius: 50%;
+  filter: blur(90px);
+  opacity: 0.22;
+}
+
+.orb-1 { background: var(--void); top: -18%; left: -12%; animation: drift1 26s ease-in-out infinite; }
+.orb-2 { background: var(--c-sukuna); bottom: -20%; right: -14%; animation: drift2 32s ease-in-out infinite; }
+.orb-3 { background: var(--c-gojo); top: 40%; left: 60%; animation: drift3 38s ease-in-out infinite; }
+
+@keyframes drift1 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(6%, 8%); } }
+@keyframes drift2 { 0%,100% { transform: translate(0,0); } 50% { transform: translate(-7%, -6%); } }
+@keyframes drift3 { 0%,100% { transform: translate(0,0) scale(1); } 50% { transform: translate(-5%, 5%) scale(1.08); } }
+
+/* ==========================================================================
+   Layout shell
+   ========================================================================== */
+
+.app {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 440px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.app-header {
+  text-align: center;
+  padding-top: 4px;
+}
+
+.eyebrow {
+  margin: 0 0 6px;
+  font-size: 12px;
+  letter-spacing: 0.18em;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(34px, 9vw, 46px);
+  letter-spacing: 0.03em;
+  line-height: 1;
+  text-transform: uppercase;
+  color: var(--text);
+  text-shadow: 0 0 18px var(--void-soft), 0 0 46px rgba(123, 92, 255, 0.18);
+}
+
+.title-accent {
+  color: var(--void);
+  margin-left: 0.12em;
+}
+
+.subtitle {
+  margin: 8px 0 0;
+  font-size: 12px;
+  letter-spacing: 0.42em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+/* ==========================================================================
+   Screen / readout
+   ========================================================================== */
+
+.screen {
+  position: relative;
+  background: linear-gradient(165deg, var(--surface-raised), var(--surface) 70%);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px 22px;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.02) inset,
+    0 20px 50px -20px rgba(0,0,0,0.7),
+    0 0 34px -6px var(--screen-glow, var(--void-soft));
+  transition: box-shadow 0.4s ease;
+  overflow: hidden;
+}
+
+.screen::before {
+  /* subtle scanline texture for a "cursed readout" feel */
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(255,255,255,0.025) 0px,
+    rgba(255,255,255,0.025) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+  pointer-events: none;
+  mix-blend-mode: overlay;
+}
+
+.screen-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.screen-tag {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  color: var(--screen-glow, var(--void));
+  text-transform: uppercase;
+  transition: color 0.3s ease;
+}
+
+.screen-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.screen-action-btn {
+  font-size: 15px;
+  min-width: 30px;
+  color: var(--text-muted);
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  transition: color 0.2s ease, background 0.2s ease, transform 0.15s ease;
+}
+
+.screen-action-btn:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+.screen-action-btn:active { transform: scale(0.9); }
+
+.screen-expression {
+  min-height: 20px;
+  font-family: var(--font-mono);
+  font-size: 15px;
+  color: var(--text-muted);
+  text-align: right;
+  white-space: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.screen-expression::-webkit-scrollbar { display: none; }
+
+.screen-result {
+  margin-top: 4px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: clamp(34px, 11vw, 44px);
+  text-align: right;
+  color: var(--text);
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.screen-result::-webkit-scrollbar { display: none; }
+
+.screen-result.is-error {
+  color: var(--danger);
+  animation: shake 0.4s ease;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-4px); }
+  75% { transform: translateX(4px); }
+}
+
+/* ==========================================================================
+   Keypad
+   ========================================================================== */
+
+.keypad {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+/* --- shared button chrome --- */
+.key {
+  position: relative;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  transition: transform 0.12s ease;
+  touch-action: manipulation;
+}
+
+.key:active { transform: scale(0.94); }
+
+.key:focus-visible {
+  outline: 2px solid var(--text);
+  outline-offset: 2px;
+}
+
+/* --- number / sorcerer tiles --- */
+.key-sorcerer {
+  aspect-ratio: 1 / 1;
+  background: var(--surface);
+  border: 1px solid var(--border-soft);
+  box-shadow: 0 0 0 0 var(--curse-color, var(--void));
+  transition: transform 0.12s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.key-sorcerer:active {
+  box-shadow: 0 0 0 2px var(--curse-color, var(--void)), 0 0 22px -2px var(--curse-color, var(--void));
+  border-color: var(--curse-color, var(--void));
+}
+
+.portrait {
+  position: absolute;
+  inset: 0;
+}
+
+.portrait img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0;
+  transform: scale(1.06);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+}
+
+.portrait img.is-visible {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.portrait img.is-swapping {
+  opacity: 0;
+  transform: scale(0.96);
+}
+
+/* elegant fallback shown while a real image file is missing */
+.placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(circle at 30% 20%, color-mix(in srgb, var(--curse-color, var(--void)) 35%, transparent), transparent 60%),
+    linear-gradient(150deg, var(--surface-raised), var(--surface) 75%);
+}
+
+.placeholder-glyph {
+  font-family: var(--font-display);
+  font-size: 30px;
+  color: var(--curse-color, var(--void));
+  opacity: 0.9;
+  text-shadow: 0 0 16px var(--curse-color, var(--void));
+}
+
+.key-sorcerer.is-active .placeholder-glyph,
+.key-sorcerer.is-active .portrait img {
+  filter: saturate(1.1);
+}
+
+/* number + name scrim */
+.key-label {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 6px 8px 7px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  background: linear-gradient(to top, rgba(6,5,10,0.88) 10%, rgba(6,5,10,0.35) 65%, transparent);
+}
+
+.key-number {
+  font-family: var(--font-display);
+  font-size: 19px;
+  line-height: 1;
+  color: var(--text);
+  text-shadow: 0 1px 6px rgba(0,0,0,0.6);
+}
+
+.key-name {
+  font-size: 9.5px;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  max-width: 68px;
+  text-align: right;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* --- operator tiles --- */
+.key-operator {
+  aspect-ratio: 1 / 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-alt);
+  border: 1px solid var(--border-soft);
+  font-size: 24px;
+  color: var(--text);
+}
+
+.key-operator:active {
+  background: var(--surface-raised);
+  box-shadow: 0 0 18px -4px var(--void-soft);
+}
+
+.key-clear {
+  color: var(--danger);
+  font-family: var(--font-display);
+  font-size: 17px;
+  letter-spacing: 0.05em;
+}
+
+.key-clear:active {
+  box-shadow: 0 0 18px -4px rgba(255, 59, 92, 0.5);
+  border-color: rgba(255, 59, 92, 0.4);
+}
+
+.key-dot {
+  font-size: 26px;
+  font-weight: 700;
+}
+
+/* --- equals: the one big gesture on the board --- */
+.key-equals {
+  grid-column: span 4;
+  height: 58px;
+  border-radius: var(--radius-md);
+  font-family: var(--font-display);
+  font-size: 20px;
+  letter-spacing: 0.06em;
+  color: #08070c;
+  background: linear-gradient(100deg, var(--equals-a), var(--equals-b));
+  box-shadow: 0 12px 30px -10px rgba(123, 92, 255, 0.55);
+}
+
+.key-equals:active {
+  box-shadow: 0 6px 18px -6px rgba(41, 197, 255, 0.6);
+}
+
+/* ==========================================================================
+   Footer
+   ========================================================================== */
+
+.app-footer {
+  text-align: center;
+  color: var(--text-faint);
+  font-size: 11.5px;
+  letter-spacing: 0.03em;
+}
+
+.app-footer p { margin: 0; }
+
+/* ==========================================================================
+   Responsive
+   ========================================================================== */
+
+@media (min-width: 480px) {
+  .app { max-width: 460px; gap: 26px; }
+  .keypad { gap: 12px; }
+}
+
+@media (min-width: 700px) {
+  body { align-items: center; }
+  .app { max-width: 420px; }
+}
+
+@media (max-width: 340px) {
+  .key-name { display: none; }
+  .keypad { gap: 8px; }
+}
+
+/* Compact phones keep the portraits and touch targets useful while removing
+   vertical whitespace that otherwise forces an unnecessary page scroll. */
+@media (max-width: 480px) {
+  body {
+    min-height: 100dvh;
+    padding: max(10px, env(safe-area-inset-top)) 12px max(10px, env(safe-area-inset-bottom));
+  }
+
+  .app { gap: 12px; }
+
+  .app-header { padding-top: 0; }
+  .eyebrow { margin-bottom: 3px; font-size: 10px; }
+  .title { font-size: clamp(28px, 9vw, 38px); }
+  .subtitle { margin-top: 4px; font-size: 10px; letter-spacing: 0.32em; }
+
+  .screen { border-radius: 18px; padding: 12px 14px 14px; }
+  .screen-top { margin-bottom: 5px; }
+  .screen-expression { min-height: 17px; font-size: 13px; }
+  .screen-result { margin-top: 2px; font-size: clamp(30px, 10vw, 38px); }
+  .screen-action-btn { min-width: 28px; padding: 3px 7px; }
+
+  .keypad { gap: 7px; }
+  .key { border-radius: 13px; }
+  .key-label { padding: 5px 6px 6px; }
+  .key-number { font-size: 18px; }
+  .key-name { font-size: 9px; }
+  .key-equals { height: 48px; font-size: 18px; }
+  .app-footer { font-size: 10.5px; }
+}
+
+/* ==========================================================================
+   Reduced motion
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
